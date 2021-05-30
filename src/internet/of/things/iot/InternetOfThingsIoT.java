@@ -76,7 +76,7 @@ public class InternetOfThingsIoT {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
+        System.out.println(User.getSdUser());
     }
 }
 

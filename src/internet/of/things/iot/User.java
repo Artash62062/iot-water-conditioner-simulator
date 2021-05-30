@@ -52,6 +52,34 @@ public class User extends Thread {
         }//end for
         System.out.println("The thread" + super.getName() + "termina...");
     }//end run()
+
+    public static double getSdUser() {
+        try {
+            userTimeListLisLock.lock();
+            double standardDeviation = 0;
+            int length = userTimeList.size();
+            double media = getMediaUser();
+            for (int i = 0; i < length; i++) {
+                standardDeviation += Math.pow(userTimeList.get(i) - media, 2);
+            }
+            return Math.sqrt(standardDeviation / length);
+        } finally {
+            userTimeListLisLock.unlock();
+        }
+    }
+
+    public static double getMediaUser() {
+        try {
+            long temp = 0;
+            userTimeListLisLock.lock();
+            for (Long userTime : userTimeList) {
+                temp += userTime;
+            }
+            return (double) temp / userTimeList.size();
+        } finally {
+            userTimeListLisLock.unlock();
+        }
+    }
 }//end class
     
 
