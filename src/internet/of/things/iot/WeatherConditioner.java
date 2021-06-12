@@ -24,9 +24,9 @@ public class WeatherConditioner extends Thread {
     public void run() {
         boolean isAlive = true;
         while (isAlive) {
-            this.en.updateParameters();
             try {
-                Thread.sleep(4);
+                this.en.updateParameters();
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 System.out.println("INTERRUPT" + e);
                 isAlive = false;

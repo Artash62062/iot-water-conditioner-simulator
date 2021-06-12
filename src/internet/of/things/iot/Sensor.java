@@ -15,8 +15,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Sensor extends Thread {
     private final Cloud cl;
     private final Environment env;
-    ReentrantLock lock;
-    Condition condition;
     int readingErrorPercentage;
     int lastReadTemperature;
     int lastReadLight;
@@ -25,8 +23,6 @@ public class Sensor extends Thread {
     public Sensor(Environment e, Cloud c, String name) {
         super(name);
         this.env=e;
-        lock = new ReentrantLock();
-        condition = lock.newCondition();
         readingErrorPercentage = getRandomNumber(-10,10);
         this.cl = c;
     }
@@ -39,7 +35,7 @@ public class Sensor extends Thread {
             try {
                 env.measureParameters(this);
                 this.cl.writeData(this);
-                Thread.sleep(4);
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 isAlive = false;
             }

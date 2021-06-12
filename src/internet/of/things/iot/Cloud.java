@@ -31,10 +31,8 @@ public class Cloud {
     private final Queue<Integer> tempBuffer;
     private final Queue<Integer> lightBuffer;
     private final ReentrantLock buffersLock;
-    Condition addDataToTemp;
-    Condition addDataToLight;
-    Condition removeDataFromTemp;
-    Condition removeDataFromLight;
+    Semaphore newLightData;
+    Semaphore newTempData;
 
 
     int maxSize;
@@ -50,14 +48,9 @@ public class Cloud {
         lightBuffer = new LinkedList<>();
         maxSize = 30;
         minSize = 4;
-
         this.buffersLock = new ReentrantLock();
-
-        this.removeDataFromTemp = buffersLock.newCondition();
-        this.addDataToTemp = buffersLock.newCondition();
-        this.addDataToLight = buffersLock.newCondition();
-        this.removeDataFromLight = buffersLock.newCondition();
-
+        this.newLightData = new Semaphore(0, true); // stexic Lock Er@ hanem Semophore Em drel
+        this.newTempData = new Semaphore(0, true);// nuyn@
     }//end constructor
 
     //method writeData(...) for writing a value by a sensor
@@ -73,12 +66,9 @@ public class Cloud {
 
     public void writeTemperatureData(int temperature) throws InterruptedException {
         try {
-            buffersLock.lock(); //de Paraz lock a anum vor grel kardluc vochmek chxangari
-            while (tempBuffer.size() == maxSize) { // stuguma ete buffer i chap@ mer tvac maximum i chap a aysinqn minchev verj lcvel a
-                removeDataFromTemp.await(); //spasum a minchev User @ chasi vor es steic kardace jnjel em karas gas gres
-            }
+            buffersLock.lock();
             tempBuffer.add(temperature); // buffer i mech avelacnum a temperature @
-            addDataToTemp.signal(); // signal a anum user in asuma avelacrel em ete spasum eir hima nayi tes te  hat ka karda
+            newTempData.release(); // semophore i permit neri qnanak@ avelacnuma vor user @ karana haskana ep a mkaranalu karda
         } finally {
             buffersLock.unlock();
         }
@@ -88,12 +78,8 @@ public class Cloud {
     public void writeLightData(int light) throws InterruptedException { // anum a nuyn ban@ inch verevin@ prost@ light i hamar
         try {
             buffersLock.lock();
-
-            while (lightBuffer.size() > maxSize) {
-                removeDataFromLight.await();
-            }
             lightBuffer.add(light);
-            addDataToLight.signal();
+            newLightData.release();  // semophore i permit neri qnanak@ avelacnuma vor user @ karana haskana ep a mkaranalu karda
         } finally {
             buffersLock.unlock();
         }
@@ -101,36 +87,27 @@ public class Cloud {
 
 
     public void readAverageTemp(User user) throws InterruptedException {
-
+        newTempData.acquire(4); // Spasum a minchev Sempohire @ 4 hat permit unena ed jamanak 4 permit hanuma us ksuma ashxatel bufferneri het
         try {
             buffersLock.lock();                    // de pagum a bufferner@
-            while (tempBuffer.size() < minSize) { // stuguma  hat ka te che ete chka an@ndhat spasum signal tvox nerin en voroq asum ein iran minche  hat@ chlarana
-                addDataToTemp.await();
-            }
             int sum = 0;
             for (int i = 0; i < 4; i++) {
                 sum += tempBuffer.remove(); // verji grac infon buffer i glxic hanum a
-                removeDataFromTemp.signal();//asuma vor mi hat hanel em karaq gaq greq
             }
             System.out.println("The user " + user.getName() + " has just read the value "
                     + " from temperature Buffer and average is " + sum / 4); // de stex el mijin@ dusa talis eli :D
-
         } finally {
             buffersLock.unlock();
         }
     }
 
     public void readAverageLight(User user) throws InterruptedException { //nuyn@ inch vor verevin@ light i hamar anum
-
+        newLightData.acquire(4);// Spasum a minchev Sempohire @ 4 hat permit unena ed jamanak 4 permit hanuma us ksuma ashxatel bufferneri het
         try {
             buffersLock.lock();
-            while (lightBuffer.size() < minSize) {
-                addDataToLight.await();
-            }
             int sum = 0;
             for (int i = 0; i < 4; i++) {
                 sum += lightBuffer.remove();
-                removeDataFromLight.signal();
             }
             System.out.println(" The user " + user.getName() + " has just read the value "
                     + " from Light Buffer and average is " + sum / 4);
