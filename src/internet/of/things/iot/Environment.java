@@ -37,8 +37,7 @@ public class Environment extends Thread {
     public void measureParameters(Sensor s) throws InterruptedException {
         try {
             lock.lock();
-            Thread.sleep(0);
-            this.newParameters.await();
+            newParameters.await();
             s.lastReadTemperature = this.valueTemp;
             s.lastReadLight = this.valueLight;
             System.out.println("The " + super.getName() + " has measured the "
@@ -54,7 +53,6 @@ public class Environment extends Thread {
     public void updateParameters() throws InterruptedException {
         this.lock.lock();
         try {
-            Thread.sleep(50);
             this.valueLight += 1000;
             this.valueTemp += 10 + (0.00022 * this.valueLight);
             System.out.println("The WeatherConditioner has updated " + valueTemp +
