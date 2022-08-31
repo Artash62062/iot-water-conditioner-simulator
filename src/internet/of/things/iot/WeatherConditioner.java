@@ -7,7 +7,7 @@ package internet.of.things.iot;
 
 /**
  *
- * @author ani
+ * @author Artash
  */
 //the thread that modifies environmental parameters
 public class WeatherConditioner extends Thread {
